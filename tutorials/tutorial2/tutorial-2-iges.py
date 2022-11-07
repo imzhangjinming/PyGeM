@@ -10,7 +10,8 @@
 # The **CAD** submodule of **PyGeM** takes care of the deformation to all CAD files (.step, .iges, etc.), so first of all we import from the submodule the `FFD` class.
 
 # In[1]:
-
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from pygem.cad import FFD
 
@@ -42,5 +43,5 @@ ffd(input_cad_file_name, modified_cad_file_name)
 # In[4]:
 
 
-get_ipython().system('diff -y ../tests/test_datasets/test_pipe.iges test_pipe_deformed.iges')
+# get_ipython().system('diff -y ../tests/test_datasets/test_pipe.iges test_pipe_deformed.iges')
 
