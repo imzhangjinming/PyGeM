@@ -59,6 +59,14 @@ def angles2matrix(rot_z=0, rot_y=0, rot_x=0):
         return reduce(np.dot, rot_matrix[::-1])
     return np.eye(3)
 
+def angles2matrix2d(theta=0):
+    rot_matrix = []
+    if theta:
+        cos = math.cos(theta)
+        sin = math.sin(theta)
+        rot_matrix = np.array([cos, -sin, sin, cos]).reshape((2, 2))
+        return rot_matrix
+    return np.eye(2)      
 
 def fit_affine_transformation(points_start, points_end):
     """
