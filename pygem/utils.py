@@ -5,7 +5,8 @@ Deformation.
 import math
 from functools import reduce
 import numpy as np
-
+from scipy import special
+import pybobyqa
 
 def angles2matrix(rot_z=0, rot_y=0, rot_x=0):
     """
@@ -127,3 +128,157 @@ def fit_affine_transformation(points_start, points_end):
                 ).reshape(shape)
 
     return transform
+
+
+def phy2ffd_map2d(ctrl_pts, phy_coords, dim_x, dim_y):
+    '''
+    to be filled
+    '''
+    assert ctrl_pts.shape[0] == dim_x * dim_y, "shoule have {} control points, {} given.".format(dim_x*dim_y, ctrl_pts.shape[0])
+    phy_coord = np.array([0, 0])
+
+    def obj_func_x(x):
+        u, v = x[0], x[1]
+        # phy_coord = np.array([x[2], x[3]])
+
+        bernstein_x = np.zeros((dim_x, 1))
+        bernstein_y = np.zeros((dim_y, 1))
+
+        for i in range(0, dim_x):
+            aux1 = np.power((1 - u), dim_x - 1 - i)
+            aux2 = np.power(u, i)
+            bernstein_x[i, :] = (special.binom(dim_x - 1, i) *
+                                    np.multiply(aux1, aux2))
+
+        for i in range(0, dim_y):
+            aux1 = np.power((1 - v), dim_y - 1 - i)
+            aux2 = np.power(v, i)
+            bernstein_y[i, :] = special.binom(dim_y - 1,
+                                                i) * np.multiply(aux1, aux2)
+
+        # for i in range(0, dim_t_mu):
+        #     aux1 = np.power((1 - points[:, 2]), dim_t_mu - 1 - i)
+        #     aux2 = np.power(points[:, 2], i)
+        #     bernstein_z[i, :] = special.binom(dim_t_mu - 1,
+        #                                       i) * np.multiply(aux1, aux2)
+
+        aux_x = 0.
+        # aux_y = 0.
+        # aux_z = 0.
+
+        for j in range(0, dim_y):
+            # for k in range(0, dim_t_mu):
+            #     bernstein_yz = np.multiply(bernstein_y[j, :],
+            #                                bernstein_z[k, :])
+            for i in range(0, dim_x):
+                aux = np.multiply(bernstein_x[i, :], bernstein_y[j, :])
+                aux_x += aux * ctrl_pts[dim_y*i + j][0]
+                # aux_y += aux * ctrl_pts[dim_y*i + j][1]
+
+        # print(aux_x)
+        # print(aux_y)
+        
+        return (aux_x - phy_coord[0])**2
+
+    def obj_func_y(x):
+        u, v = x[0], x[1]
+        # phy_coord = np.array([x[2], x[3]])
+
+        bernstein_x = np.zeros((dim_x, 1))
+        bernstein_y = np.zeros((dim_y, 1))
+
+        for i in range(0, dim_x):
+            aux1 = np.power((1 - u), dim_x - 1 - i)
+            aux2 = np.power(u, i)
+            bernstein_x[i, :] = (special.binom(dim_x - 1, i) *
+                                    np.multiply(aux1, aux2))
+
+        for i in range(0, dim_y):
+            aux1 = np.power((1 - v), dim_y - 1 - i)
+            aux2 = np.power(v, i)
+            bernstein_y[i, :] = special.binom(dim_y - 1,
+                                                i) * np.multiply(aux1, aux2)
+
+        # for i in range(0, dim_t_mu):
+        #     aux1 = np.power((1 - points[:, 2]), dim_t_mu - 1 - i)
+        #     aux2 = np.power(points[:, 2], i)
+        #     bernstein_z[i, :] = special.binom(dim_t_mu - 1,
+        #                                       i) * np.multiply(aux1, aux2)
+
+        # aux_x = 0.
+        aux_y = 0.
+        # aux_z = 0.
+
+        for j in range(0, dim_y):
+            # for k in range(0, dim_t_mu):
+            #     bernstein_yz = np.multiply(bernstein_y[j, :],
+            #                                bernstein_z[k, :])
+            for i in range(0, dim_x):
+                aux = np.multiply(bernstein_x[i, :], bernstein_y[j, :])
+                # aux_x += aux * ctrl_pts[dim_y*i + j][0]
+                aux_y += aux * ctrl_pts[dim_y*i + j][1]
+
+        # print(aux_x)
+        # print(aux_y)
+        
+        return (aux_y - phy_coord[1])**2
+
+    uv_all = np.zeros_like(phy_coords)
+
+
+    for i in range(phy_coords.shape[0]):
+        phy_coord = phy_coords[i, :]
+
+        lower = np.array([0.0, 0.0])
+        upper = np.array([1.0, 1.0])
+
+        soln = pybobyqa.solve(objfun=obj_func_x, x0=uv_all[i-1, :])#, bounds=(lower, upper)
+        uv_all[i, 0] = soln.x[0]
+        soln = pybobyqa.solve(objfun=obj_func_y, x0=uv_all[i-1, :])#, bounds=(lower, upper)
+        uv_all[i, 1] = soln.x[1]
+        
+    
+    return uv_all
+
+def ffd2phy_map2d(ctrl_pts, uv_coords, dim_x, dim_y):
+    uv_coords = np.transpose(uv_coords)
+    u, v = uv_coords[0, :], uv_coords[1, :]
+    # phy_coord = np.array([x[2], x[3]])
+    n_rows = uv_coords.shape[1]
+
+    bernstein_x = np.zeros((dim_x, n_rows))
+    bernstein_y = np.zeros((dim_y, n_rows))
+
+    for i in range(0, dim_x):
+        aux1 = np.power((1 - u), dim_x - 1 - i)
+        aux2 = np.power(u, i)
+        bernstein_x[i, :] = (special.binom(dim_x - 1, i) *
+                                np.multiply(aux1, aux2))
+
+    for i in range(0, dim_y):
+        aux1 = np.power((1 - v), dim_y - 1 - i)
+        aux2 = np.power(v, i)
+        bernstein_y[i, :] = special.binom(dim_y - 1,
+                                            i) * np.multiply(aux1, aux2)
+
+    # for i in range(0, dim_t_mu):
+    #     aux1 = np.power((1 - points[:, 2]), dim_t_mu - 1 - i)
+    #     aux2 = np.power(points[:, 2], i)
+    #     bernstein_z[i, :] = special.binom(dim_t_mu - 1,
+    #                                       i) * np.multiply(aux1, aux2)
+
+    aux_x = 0.
+    aux_y = 0.
+    # aux_z = 0.
+
+    for j in range(0, dim_y):
+        # for k in range(0, dim_t_mu):
+        #     bernstein_yz = np.multiply(bernstein_y[j, :],
+        #                                bernstein_z[k, :])
+        for i in range(0, dim_x):
+            aux = np.multiply(bernstein_x[i, :], bernstein_y[j, :])
+            aux_x += aux * ctrl_pts[dim_y*i + j][0]
+            aux_y += aux * ctrl_pts[dim_y*i + j][1]
+
+    phy_coords = np.transpose(np.vstack((aux_x, aux_y)))
+    return phy_coords

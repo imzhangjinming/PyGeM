@@ -21,19 +21,28 @@ def mesh_points(num_pts=2000):
 
     return np.array([np.cos(theta) * np.sin(phi), np.sin(theta) * np.sin(phi), np.cos(phi)]).T
 
-# mesh = mesh_points()
 inputfile = "D:/ZJM/graduate/叶型参数化方法/FFD/PyGeM/tests/test_datasets/profile_single_section_2d.curve"
 mesh = pd.read_table(inputfile, skiprows=1, delim_whitespace=True, warn_bad_lines=True, error_bad_lines=False, names=['x', 'y', 'z'])
 
-# mesh = mesh.sort_values(by=['x','y','z'])
 mesh = mesh.to_numpy()   
-mesh = mesh[:, 1:]               
+mesh = mesh[:, 1:] 
+angle = 145/180.0 * np.pi
+cos = np.cos(angle)
+sin = np.sin(angle)
+rotation = np.array([[cos, -sin],[sin, cos]])
+mesh = np.transpose(rotation.dot(np.transpose(mesh)))
+mesh[:, 0] += 0.11
+mesh[:, 1] += 0.015
+
 # fig = plt.figure(figsize=(8, 8))
 # ax = fig.add_subplot(111)
 # ax.scatter(*mesh.T)
-# ax.axis('auto')
+# # ax.axis('equal')
 # ax.set_xlabel('X Label')
 # ax.set_ylabel('Y Label')
+# ax.set_xlim(0,0.11)
+# ax.set_ylim(-0.01,0.01)
+
 # plt.show()
 
 ffd = FFD2D()
@@ -43,8 +52,8 @@ print(ffd)
 print('Movements of point[{}, {}] along x: {}'.format(1, 1, ffd.array_mu_x[1, 1]))
 print('Movements of point[{}, {}] along y: {}'.format(1, 1, ffd.array_mu_y[1, 1]))
 
-ffd.array_mu_x[1, 2] = 0.25
-ffd.array_mu_y[1, 2] = 0.25
+# ffd.array_mu_x[1, 1] = 0.25
+ffd.array_mu_y[1, 1] = 0.25
 print()
 print('Movements of point[{}, {}] along x: {}'.format(1, 1, ffd.array_mu_x[1, 1]))
 print('Movements of point[{}, {}] along y: {}'.format(1, 1, ffd.array_mu_y[1, 1]))
@@ -55,10 +64,10 @@ print(type(new_mesh), new_mesh.shape)
 fig = plt.figure(figsize=(8, 8))
 ax = fig.add_subplot(111)
 
-ax.scatter(*new_mesh.T, c='green')
+ax.scatter(*new_mesh.T, c='green', label='deformed')
+ax.scatter(*mesh.T, label='original', c='blue')
 ax.scatter(*ffd.control_points().T, s=50, c='red')
-
-ax.scatter(*mesh.T)
 ax.set_xlabel('X Label')
 ax.set_ylabel('Y Label')
+ax.legend()
 plt.show()
