@@ -21,7 +21,7 @@ def mesh_points(num_pts=2000):
     return np.array([np.cos(theta) * np.sin(phi), np.sin(theta) * np.sin(phi), np.cos(phi)]).T
 
 # mesh = mesh_points()
-inputfile = "D:/ZJM/graduate/叶型参数化方法/FFD/PyGeM/tests/test_datasets/profile.curve"
+inputfile = "D:/BaiduSyncdisk/graduate/parametrization/FFD/PyGeM/tests/test_datasets/profile.curve"
 mesh = pd.read_table(inputfile, skiprows=1, delim_whitespace=True, warn_bad_lines=True, error_bad_lines=False, names=['x', 'y', 'z'])
 
 # mesh = mesh.sort_values(by=['x','y','z'])
@@ -36,7 +36,7 @@ mesh = mesh.to_numpy()
 # plt.show()
 
 ffd = FFD()
-ffd.read_parameters("D:/ZJM/graduate/叶型参数化方法/FFD/PyGeM/tests/test_datasets/profile.prm")
+ffd.read_parameters("D:/BaiduSyncdisk/graduate/parametrization/FFD/PyGeM/tests/test_datasets/profile.prm")
 print(ffd)
 
 print('Movements of point[{}, {}, {}] along x: {}'.format(1, 1, 1, ffd.array_mu_x[1, 1, 1]))

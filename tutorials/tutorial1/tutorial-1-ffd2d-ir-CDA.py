@@ -19,7 +19,7 @@ def mesh_points(num_pts=2000):
 
     return np.array([np.cos(theta) * np.sin(phi), np.sin(theta) * np.sin(phi), np.cos(phi)]).T
 
-inputfile = "D:/ZJM/graduate/parametrization/FFD/PyGeM/tests/test_datasets/CDA.curve"
+inputfile = "D:/BaiduSyncdisk/graduate/parametrization/FFD/PyGeM/tests/test_datasets/CDA.curve"
 mesh = pd.read_table(inputfile, skiprows=1, delim_whitespace=True, warn_bad_lines=True, error_bad_lines=False, names=['x1', 'pressure_side', 'x2', 'suction_side'])
 
 mesh = mesh.to_numpy()   
@@ -38,7 +38,7 @@ suction_side = mesh[:, 2:].copy().astype(np.float)
 # plt.show()
 
 ffd = FFD2D_irregular()
-ffd.read_parameters("D:/ZJM/graduate/parametrization/FFD/PyGeM/tests/test_datasets/CDA-ir.prm")
+ffd.read_parameters("D:/BaiduSyncdisk/graduate/parametrization/FFD/PyGeM/tests/test_datasets/CDA-ir.prm")
 print(ffd)
 
 print('Movements of point[{}, {}] along x: {}'.format(1, 1, ffd.array_mu_x[1, 1]))
@@ -53,7 +53,7 @@ print('Movements of point[{}, {}] along y: {}'.format(1, 1, ffd.array_mu_y[1, 1]
 new_pressure_side = ffd(pressure_side)
 new_suction_side = ffd(suction_side)
 
-f = open(r'D:\ZJM\graduate\parametrization\FFD\PyGeM\tests\test_datasets\CDA_deformed-ir.curve', 'w')
+f = open(r'D:/BaiduSyncdisk/graduate/parametrization/FFD/PyGeM/tests/test_datasets/CDA_deformed-ir.curve', 'w')
 f.write('# CDA section, mm\n')
 for i in range(new_pressure_side.shape[0]):
     f.write('{} {} {} {}\n'.format(new_pressure_side[i, 0], new_pressure_side[i, 1], new_suction_side[i,0], new_suction_side[i,1]))
